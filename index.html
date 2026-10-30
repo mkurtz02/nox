@@ -474,6 +474,8 @@ body[data-look="glow"] #splash .line{background:#fff;opacity:.6}
 .planex .m{font-family:var(--mono);font-size:12px;color:var(--mu)}
 .badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:5px;background:var(--gold-bg);color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
 .badge.mu{background:var(--s3);color:var(--mu)}
+a.btn{text-decoration:none;color:inherit}
+.coachq{white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12px;line-height:1.5;color:var(--mu);background:var(--s2);border:1px solid var(--line);border-radius:var(--r-s);padding:12px;max-height:220px;overflow:auto;margin-top:12px}
 .note{border:1px dashed var(--line2);border-radius:var(--r);padding:12px 14px;color:var(--mu);font-size:14px;margin-top:12px}
 
 /* Übungsanleitung */
@@ -635,7 +637,7 @@ function maxelPlan() {
 function defaultState() {
   return {
     v: 1,
-    settings: { name: 'KURTZ.', appName: 'NOX', restTimer: true, restSeconds: 120, weeklyGoal: 3, sound: true, font: 'grotesk', fontGlow: 'bebas', tone: 'leuchtend', splash: true, look: 'glow' },
+    settings: { name: 'KURTZ.', appName: 'NOX', restTimer: true, restSeconds: 120, weeklyGoal: 3, sound: true, font: 'grotesk', fontGlow: 'bebas', tone: 'leuchtend', splash: true, look: 'glow', height: 184, weight: 74 },
     plan: maxelPlan(),
     sessions: [],
     cardio: [],
@@ -645,7 +647,7 @@ function defaultState() {
 }
 let S = load();
 function load() {
-  try { let raw = localStorage.getItem(KEY); if (!raw && localStorage.getItem(OLD_KEY)) { raw = localStorage.getItem(OLD_KEY); localStorage.setItem(KEY, raw); } if (raw) { const s = JSON.parse(raw); if (s && s.plan) { if (!s.settings.look) s.settings.look = 'glow'; if (s.plan.isExample && s.plan.version !== PLAN_VERSION) { s.plan = maxelPlan(); localStorage.setItem(KEY, JSON.stringify(s)); } if (s.settings.appName === 'EISEN') { s.settings.appName = 'NOX'; localStorage.setItem(KEY, JSON.stringify(s)); } return s; } } } catch (e) { }
+  try { let raw = localStorage.getItem(KEY); if (!raw && localStorage.getItem(OLD_KEY)) { raw = localStorage.getItem(OLD_KEY); localStorage.setItem(KEY, raw); } if (raw) { const s = JSON.parse(raw); if (s && s.plan) { if (!s.settings.look) s.settings.look = 'glow'; if (s.settings.height == null) { s.settings.height = 184; s.settings.weight = 74; } if (s.plan.isExample && s.plan.version !== PLAN_VERSION) { s.plan = maxelPlan(); localStorage.setItem(KEY, JSON.stringify(s)); } if (s.settings.appName === 'EISEN') { s.settings.appName = 'NOX'; localStorage.setItem(KEY, JSON.stringify(s)); } return s; } } } catch (e) { }
   return defaultState();
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Speichern fehlgeschlagen'); } }
@@ -931,9 +933,17 @@ function pickDaySheet() {
 }
 
 /* ========== Training ========== */
-function startTraining(dayIndex) {
+function startTraining(dayIndex, force = false) {
   if (S.active) { go('train'); return; }
   const day = dayIndex >= 0 ? S.plan.days[dayIndex] : null;
+  const todayS = sessionsOn(localISO()).filter(s => s.dayId === (day ? day.id : null)).sort((a, b) => (b.endedAt || 0) - (a.endedAt || 0))[0];
+  if (todayS && !force) {
+    const n = todayS.entries.reduce((m, e) => m + e.sets.length, 0);
+    sheet(`<div class="sheet-h">${esc(todayS.dayName)} ist heute schon gespeichert</div><p class="sub" style="margin-bottom:16px">${n} ${n === 1 ? 'Satz' : 'Sätze'}: ${todayS.entries.map(e => esc(e.name)).join(', ')}.</p>
+      <div class="stack"><button class="btn wide primary" onclick="resumeSession('${todayS.id}')">Fortsetzen</button>
+      <button class="btn wide ghost" onclick="closeSheet();startTraining(${dayIndex},true)">Neues Training starten</button></div>`);
+    return;
+  }
   const entries = day ? day.exercises.map(e => makeEntry(e)) : [];
   S.active = { id: uid(), date: localISO(), dayId: day ? day.id : null, dayIndex, dayName: day ? day.name : 'Frei', startedAt: Date.now(), entries, restEnd: null, restTotal: 0 };
   save(); applyFont(); go('train');
@@ -1031,7 +1041,7 @@ function addExerciseSheet() {
     ${known.length ? `<div class="kicker" style="margin:18px 0 8px">Aus dem Plan</div><div class="stack">${known.map(x => `<button class="opt" onclick="closeSheet();addKnownExercise('${x.id}')"><span>${esc(x.name)}</span></button>`).join('')}</div>` : ''}`);
   if (!IS_TOUCH) setTimeout(() => $('#newex')?.focus(), 250);
 }
-function addFreeExercise() { const n = $('#newex').value.trim(); if (!n) return; closeSheet(); S.active.entries.push(makeEntry({ id: uid(), name: n, sets: 3, repsMin: 8, repsMax: 12, inc: 2.5, rest: S.settings.restSeconds })); save(); render(); }
+function addFreeExercise() { const n = $('#newex').value.trim(); if (!n) return; closeSheet(); S.active.entries.push(makeEntry({ id: uid(), name: n, sets: 3, repsMin: 8, repsMax: 12, inc: 2.5, rest: S.settings.restSeconds })); save(); render(); toast(findLib(n) ? 'Hinzugefügt. Anleitung über ⓘ.' : 'Hinzugefügt. Über ⓘ den Coach fragen.'); }
 function addKnownExercise(id) { let def = null; S.plan.days.forEach(d => d.exercises.forEach(e => { if (e.id === id) def = e; })); if (!def) { const n = allExerciseNames().find(x => x.id === id); def = { id, name: n.name, sets: 3, repsMin: 8, repsMax: 12, inc: 2.5, rest: S.settings.restSeconds }; } S.active.entries.push(makeEntry(def)); save(); render(); }
 function tickTrain() {
   const a = S.active; if (!a) return;
@@ -1052,6 +1062,30 @@ function beepReady() { if (!S.settings.sound) return; try { actx = actx || new (
 function beep() { if (!S.settings.sound || !actx) return; try { const o = actx.createOscillator(), g = actx.createGain(); o.type = 'sine'; o.frequency.value = 660; g.gain.value = 0.0001; o.connect(g); g.connect(actx.destination); const t = actx.currentTime; g.gain.exponentialRampToValueAtTime(0.18, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35); o.start(t); o.stop(t + 0.4); } catch (e) { } }
 function cancelTraining() { confirmSheet('Training verwerfen?', 'Alle Sätze von heute gehen verloren.', 'Verwerfen', () => { S.active = null; save(); applyFont(); go('home'); }, true); }
 function finishTraining() {
+  const a = S.active; if (!a) return;
+  const doneSets = a.entries.reduce((n, e) => n + e.sets.filter(s => s.done).length, 0);
+  const openSets = a.entries.reduce((n, e) => n + e.sets.filter(s => !s.done).length, 0);
+  const sz = n => `${n} ${n === 1 ? 'Satz' : 'Sätze'}`; confirmSheet('Training beenden?', openSets ? `${sz(doneSets)} gespeichert, ${openSets} noch offen. Fortsetzen geht heute jederzeit.` : `${sz(doneSets)} gespeichert. Fortsetzen geht heute jederzeit.`, 'Beenden', doFinishTraining);
+}
+function resumeSession(id) {
+  const s = S.sessions.find(x => x.id === id); if (!s) return;
+  if (S.active) { toast('Es läuft schon ein Training'); go('train'); return; }
+  const dayIndex = S.plan.days.findIndex(d => d.id === s.dayId);
+  const day = dayIndex >= 0 ? S.plan.days[dayIndex] : null;
+  const entries = s.entries.map(e => ({ exId: e.exId, name: e.name, repsMin: e.repsMin, repsMax: e.repsMax, inc: e.inc, rest: e.rest || S.settings.restSeconds, sets: e.sets.map(x => ({ w: x.w, r: x.r, done: true })) }));
+  if (day) day.exercises.forEach(e => {
+    const have = entries.find(x => x.exId === e.id || x.name === e.name);
+    if (!have) { entries.push(makeEntry(e)); return; }
+    const l = have.sets[have.sets.length - 1]; while (have.sets.length < (e.sets || 3)) have.sets.push({ w: l ? l.w : 0, r: l ? l.r : e.repsMin, done: false });
+  });
+  S.sessions = S.sessions.filter(x => x.id !== id);
+  if (dayIndex >= 0) S.plan.nextIndex = dayIndex;
+  S.active = { id: s.id, date: s.date, dayId: s.dayId, dayIndex, dayName: s.dayName, startedAt: s.startedAt, entries, restEnd: null, restTotal: 0, resumed: true };
+  S.meta.lit = null; save(); applyFont();
+  const d = document.getElementById('done'); if (d) d.remove(); $('#app').removeAttribute('inert'); $('#nav').removeAttribute('inert');
+  closeSheet(); go('train'); toast('Training fortgesetzt');
+}
+function doFinishTraining() {
   const a = S.active; if (!a) return;
   const entries = a.entries.map(e => ({ ...e, sets: e.sets.filter(s => s.done) })).filter(e => e.sets.length);
   const prs = [];
@@ -1083,7 +1117,8 @@ function finishTraining() {
     </div>
     ${prs.length ? `<div class="kicker gold" style="margin-bottom:4px">Rekorde</div>${prs.map(p => `<div class="pr"><span>${esc(p.name)}</span><b>${fmtW(p.w)} kg × ${p.r}</b></div>`).join('')}` : ''}
     ${egg ? `<p class="sub" style="margin-top:14px;color:var(--gold)">${egg}</p>` : ''}
-    <button class="btn wide" style="margin-top:18px" onclick="closeSheet()">Fertig</button>`);
+    <button class="btn wide" style="margin-top:18px" onclick="closeSheet()">Fertig</button>
+    <button class="btn wide ghost" style="margin-top:8px" onclick="resumeSession('${session.id}')">Doch noch weitertrainieren</button>`);
 }
 
 function showDone(session, dur, prs, egg) {
@@ -1107,7 +1142,8 @@ function showDone(session, dur, prs, egg) {
     </div>
     ${prs.length || fresh.length ? `<div class="dlist">${prs.map(p => `<div class="dpr"><span>${esc(p.name)}</span><b>${fmtW(p.w)} kg × ${p.r}</b></div>`).join('')}${fresh.map(a => `<div class="dach"><span class="star">★</span><div>${a.t}<small>Neuer Erfolg</small></div></div>`).join('')}</div>` : ''}
     <div class="dfoot">${weekLine}${egg ? ` ${egg}` : ''}<br><span style="color:var(--tx)">Jetzt dehnen.</span></div>
-    <button class="btn primary" onclick="document.getElementById('done').remove();$('#app').removeAttribute('inert');$('#nav').removeAttribute('inert');render()">Weiter</button>`;
+    <button class="btn primary" onclick="document.getElementById('done').remove();$('#app').removeAttribute('inert');$('#nav').removeAttribute('inert');render()">Weiter</button>
+    <button class="btn ghost" style="margin-top:8px;animation-delay:1.2s" onclick="resumeSession('${session.id}')">Doch noch weitertrainieren</button>`;
   document.body.appendChild(el); $('#app').setAttribute('inert', ''); $('#nav').setAttribute('inert', '');
   chime();
   // Zahlen hochzählen
@@ -1218,6 +1254,7 @@ function sessionSheet(id) {
   const s = S.sessions.find(x => x.id === id); if (!s) return;
   sheet(`<div class="kicker">${fmtDateMed(s.date)} · ${fmtDurLong((s.endedAt - s.startedAt) / 1000)}</div><div class="sheet-h" style="margin-top:4px">${esc(s.dayName)}</div>
   <div class="card hair list" style="margin-bottom:14px">${s.entries.map(e => `<div><div style="font-weight:600">${esc(e.name)}</div><div class="num tiny" style="margin-top:3px">${e.sets.map(x => `${fmtW(x.w)}×${x.r}`).join(' · ')}</div></div>`).join('')}</div>
+  ${s.date === localISO() && !S.active ? `<button class="btn wide primary" style="margin-bottom:10px" onclick="resumeSession('${s.id}')">Fortsetzen</button>` : ''}
   <button class="btn wide ghost" style="color:var(--red)" onclick="closeSheet();deleteSession('${s.id}')">Training entfernen</button>`);
 }
 function deleteSession(id) { confirmSheet('Training entfernen?', 'Das lässt sich nicht rückgängig machen.', 'Entfernen', () => { S.sessions = S.sessions.filter(s => s.id !== id); save(); render(); }, true); }
@@ -1451,12 +1488,16 @@ function bodyMap(p, s) {
     <text class="cap" x="50" y="224" text-anchor="middle">HINTEN</text></svg>`;
   return `<div class="bodymap" role="img" aria-label="Muskelkarte: ${[...p, ...s].map(m => MUSCLE_NAMES[m]).join(", ")}">${front}${back}</div>`;
 }
+let INFO_CTX = null;
 function exerciseInfoSheet(name, opts = {}) {
   const lib = findLib(name);
+  const def = opts.di != null ? S.plan.days[opts.di].exercises[opts.ei] : ((S.active && S.active.entries.find(e => e.name === name)) || null);
+  INFO_CTX = { name, exId: def ? (def.id || def.exId) : null, sets: def ? (Array.isArray(def.sets) ? def.sets.length : def.sets) : 3, repsMin: def ? def.repsMin : null, repsMax: def ? def.repsMax : null };
+  const coach = `<button class="btn wide ghost" style="margin-top:10px" onclick="coachSheet('exercise',INFO_CTX)">Coach fragen</button>`;
   const edit = opts.di != null ? `<button class="btn wide ghost" style="margin-top:14px" onclick="exerciseSheet(${opts.di},${opts.ei})">Sätze, Wiederholungen, Pause bearbeiten</button>` : '';
   if (!lib) {
     sheet(`<div class="kicker">Übung</div><div class="exh" style="margin-top:4px">${esc(name)}</div>
-      <div class="note">Für diese Übung gibt es noch keine Anleitung. Sag Bescheid, dann wird sie ergänzt.</div>${edit}
+      <div class="note">Für diese Übung ist noch keine Anleitung hinterlegt. Frag den Coach, er kennt deinen Plan und deine Daten.</div>${edit}${coach}
       <button class="btn wide" style="margin-top:10px" onclick="closeSheet()">Schließen</button>`);
     return;
   }
@@ -1470,7 +1511,7 @@ function exerciseInfoSheet(name, opts = {}) {
     <div class="exsec"><div class="kicker">Tipps</div><div class="tips">${lib.tips.map(t => `<div>${t}</div>`).join('')}</div></div>
     <div class="exsec"><div class="kicker">Typische Fehler</div><div class="tips bad">${lib.bad.map(t => `<div>${t}</div>`).join('')}</div></div>
     <p class="tiny" style="margin-top:16px">Allgemeine Standardausführung. Bei Schmerzen abbrechen, im Zweifel im Gym einweisen lassen.</p>
-    ${edit}
+    ${edit}${coach}
     <button class="btn wide" style="margin-top:10px" onclick="closeSheet()">Schließen</button>`);
   $('#sheet').scrollTop = 0;
 }
@@ -1484,7 +1525,8 @@ function renderPlan() {
   <p class="sub" style="margin-top:6px">Die Tage laufen der Reihe nach. Nach jedem Training rückt der nächste nach, egal welcher Wochentag.</p>
   ${S.plan.isExample ? `<div class="note">Das ist ein Beispielplan. Trag deinen eigenen ein oder passe die Übungen an, dann wird er zu deinem.</div>` : ''}
   <div class="plandays" style="margin-top:26px">${days}</div>
-  <div class="sec"><button class="btn wide ghost" onclick="addDay()">+ Trainingstag</button></div>`;
+  <div class="sec"><button class="btn wide ghost" onclick="addDay()">+ Trainingstag</button></div>
+  <div class="sec" style="margin-top:12px"><button class="btn wide ghost" onclick="coachSheet('plan')">Plan vom Coach bewerten lassen</button></div>`;
 }
 function markOwn() { if (S.plan.isExample) S.plan.isExample = false; }
 function dayMenu(di) {
@@ -1545,12 +1587,18 @@ function renderMore() {
     <div class="field ${(st.look||'glow')==='glow' ? 'hide' : ''}"><label>Schrift</label><select onchange="setS('font',this.value)">
       ${[['grotesk','Grotesk + Mono (bisher)'],['inter','Clean · Inter'],['barlow','Industriell · Barlow Condensed'],['chakra','HUD · Chakra Petch']].map(([k,l])=>`<option value="${k}" ${st.font===k?'selected':''}>${l}</option>`).join('')}</select></div>
     <div class="row" style="padding:4px 0"><div><div style="font-weight:500">Startscreen</div><div class="tiny">beim Öffnen erst antippen</div></div><button class="toggle ${st.splash !== false ? 'on' : ''}" onclick="setS('splash',${!(st.splash !== false)})" aria-label="Startscreen"></button></div>
+    <div class="row" style="gap:10px;align-items:stretch"><label class="field" style="flex:1"><span class="lbl">Größe (cm)</span><input class="num" inputmode="numeric" value="${st.height || ''}" onchange="setS('height',Math.round(parseNum(this.value)||0)||null)"></label><label class="field" style="flex:1"><span class="lbl">Gewicht (kg)</span><input class="num" inputmode="decimal" value="${st.weight != null ? fmtW(st.weight) : ''}" onchange="setS('weight',parseNum(this.value)||null)"></label></div>
     <label class="field"><span class="lbl">Wochenziel (Einheiten)</span><input class="num" inputmode="numeric" value="${st.weeklyGoal}" onchange="setS('weeklyGoal',Math.max(1,Math.min(7,Math.round(parseNum(this.value)||3))))"></label>
   </div></div>
   <div class="sec"><div class="sec-h"><span class="kicker">Training</span></div><div class="card hair list">
     <div class="row"><div><div style="font-weight:500">Pausentimer</div><div class="tiny">startet nach jedem abgehakten Satz</div></div><button class="toggle ${st.restTimer ? 'on' : ''}" onclick="setS('restTimer',${!st.restTimer})" aria-label="Pausentimer"></button></div>
     <div class="row"><div><div style="font-weight:500">Standardpause</div><div class="tiny">wenn die Übung keine eigene hat</div></div><div class="stp" style="width:150px"><button onclick="setS('restSeconds',Math.max(15,${st.restSeconds}-15))">−</button><div class="val"><span>${st.restSeconds}</span><small>s</small></div><button onclick="setS('restSeconds',${st.restSeconds}+15)">+</button></div></div>
     <div class="row"><div><div style="font-weight:500">Ton am Ende der Pause</div><div class="tiny">leiser Ton, Handy darf nicht stumm sein</div></div><button class="toggle ${st.sound ? 'on' : ''}" onclick="setS('sound',${!st.sound})" aria-label="Ton"></button></div>
+  </div></div>
+  <div class="sec"><div class="sec-h"><span class="kicker">Coach</span></div><div class="card hair list">
+    <div><div style="font-weight:500">${bodyLine() || 'Größe und Gewicht oben eintragen'}</div>${st.weight ? `<div class="tiny" style="margin-top:3px">Richtwerte für Muskelaufbau: Protein ${Math.round(st.weight * 1.6)}–${Math.round(st.weight * 2.2)} g am Tag (1,6–2,2 g je kg), leichtes Kalorienplus, 7–9 h Schlaf.</div>` : ''}</div>
+    <button class="row" style="width:100%" onclick="coachSheet('plan')"><span style="font-weight:500">Plan bewerten lassen</span><span class="tiny">Claude oder ChatGPT ›</span></button>
+    <div class="tiny">Die App schickt selbst nichts ins Netz. „Coach fragen“ öffnet deinen KI-Assistenten mit einer fertigen Frage, die du vorher siehst.</div>
   </div></div>
   <div class="sec"><div class="sec-h"><span class="kicker">Daten</span></div><div class="card hair list">
     <div><div style="font-weight:500">Alles liegt nur auf diesem Gerät</div><div class="tiny" style="margin-top:3px">${S.sessions.length} Trainings · ${S.cardio.length} Cardio · ${(bytes / 1024).toFixed(1).replace('.', ',')} KB · kein Konto, kein Server</div></div>
@@ -1565,7 +1613,7 @@ function renderMore() {
     <div class="tiny">Nur zum Ansehen des Designs. Beispieldaten sind markiert und lassen sich jederzeit wieder entfernen, deine echten Trainings bleiben.</div>
   </div></div>
   ${!standalone ? `<div class="sec"><div class="sec-h"><span class="kicker">Aufs iPhone</span></div><div class="card"><p style="font-size:15px">In Safari unten <b>Teilen</b> antippen, dann <b>Zum Home-Bildschirm</b>. Danach startet NOX wie eine App, ohne Browserleiste und auch offline.</p></div></div>` : ''}
-  <div class="sec"><p class="tiny mono" style="text-align:center">NOX · v0.2 · ${S.meta.created}</p></div>`;
+  <div class="sec"><p class="tiny mono" style="text-align:center">NOX · v0.3 · ${S.meta.created}</p></div>`;
 }
 function setS(k, v) { S.settings[k] = v; save(); if (k === 'look' || k === 'font' || k === 'fontGlow' || k === 'tone') { document.body.classList.add('notrans'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('notrans'))); } applyFont(); render(); }
 function applyFont() {
@@ -1577,6 +1625,36 @@ function applyFont() {
   const i = S.active && S.active.dayIndex >= 0 ? S.active.dayIndex : (S.plan.nextIndex % Math.max(1, S.plan.days.length));
   const c = dayColor(i); document.body.style.setProperty('--d1', c[0]); document.body.style.setProperty('--d2', c[1]);
 }
+function bodyLine() { const h = S.settings.height, w = S.settings.weight; return [h ? `${h} cm` : null, w ? `${fmtW(w)} kg` : null].filter(Boolean).join(', '); }
+function coachPrompt(kind, ctx = {}) {
+  const h = S.settings.height, w = S.settings.weight; const me = [h ? `${h} cm groß` : null, w ? `wiege ${fmtW(w)} kg` : null].filter(Boolean).join(' und ');
+  const who = `Ich bin ${me || 'ein Mann'}, trainiere im Gym nach einem Rotationsplan (${S.plan.days.map(d => d.name).join(' / ')}), Ziel: Muskelaufbau und Effizienz, ${S.settings.weeklyGoal} Einheiten pro Woche.`;
+  const planTxt = S.plan.days.map(d => `${d.name}: ` + (d.exercises.map(e => `${e.name} ${e.sets}×${e.repsMin}–${e.repsMax}`).join(', ') || 'leer')).join('\n');
+  if (kind === 'exercise') {
+    const name = ctx.name || 'Übung'; const last = lastEntryFor(ctx.exId, name);
+    const lastTxt = last ? ` Zuletzt: ${last.entry.sets.filter(s => s.done).map(s => `${fmtW(s.w)} kg × ${s.r}`).join(', ')}.` : '';
+    const di = exDayIndex(ctx.exId, name); const dayTxt = di >= 0 ? ` Sie steht in meinem Tag „${S.plan.days[di].name}“.` : ' Sie steht noch nicht im Plan.';
+    return `${who}\n\nBitte analysiere die Übung „${name}“ für mich.${dayTxt}${lastTxt}\n1. Welche Muskeln arbeiten, Haupt- und Nebenmuskeln?\n2. Ausführung Schritt für Schritt, kurz.\n3. Drei Tipps und die zwei häufigsten Fehler.\n4. Passt sie in diesen Trainingstag, und ist ${ctx.sets || 3} × ${ctx.repsMin || 8}–${ctx.repsMax || 12} sinnvoll?\n5. Eine gleichwertige Alternative, falls das Gerät belegt ist.\nAntworte knapp, auf Deutsch, ohne Floskeln.\n\nMein Plan zur Einordnung:\n${planTxt}`;
+  }
+  const since = localISO(addDays(new Date(), -28)); const recent = S.sessions.filter(x => x.date >= since && !x.demo);
+  const perDay = S.plan.days.map(d => `${d.name} ${recent.filter(x => x.dayId === d.id).length}×`).join(', ');
+  return `${who}\n\nBewerte meinen Trainingsplan ehrlich und konkret:\n${planTxt}\n\nTrainings der letzten 4 Wochen: ${recent.length} (${perDay}).\n\n1. Ist das Volumen pro Muskelgruppe ausgewogen, Sätze pro Woche?\n2. Was fehlt, was ist doppelt?\n3. Stimmt die Reihenfolge innerhalb der Tage?\n4. Wie steigere ich Gewicht und Wiederholungen am besten?\n5. Welche drei Änderungen bringen am meisten für Muskelaufbau?\nAntworte knapp, auf Deutsch, mit konkreten Vorschlägen.`;
+}
+let COACH_Q = '';
+function coachSheet(kind, ctx = {}) {
+  COACH_Q = coachPrompt(kind, ctx); const q = encodeURIComponent(COACH_Q);
+  sheet(`<div class="kicker">Coach</div><div class="exh" style="margin-top:4px">${kind === 'plan' ? 'Plan bewerten' : esc(ctx.name || 'Übung')}</div>
+  <p class="sub" style="margin-top:10px">Öffnet deinen KI-Assistenten mit dieser Frage. Mehr als das hier geht nicht raus.</p>
+  <pre class="coachq">${esc(COACH_Q)}</pre>
+  <div class="stack" style="margin-top:14px">
+    <a class="btn wide primary" href="https://claude.ai/new?q=${q}" target="_blank" rel="noopener noreferrer">In Claude öffnen</a>
+    <a class="btn wide ghost" href="https://chatgpt.com/?q=${q}" target="_blank" rel="noopener noreferrer">In ChatGPT öffnen</a>
+    <button class="btn wide ghost" onclick="copyCoach()">Frage kopieren</button>
+    <button class="btn wide ghost" onclick="closeSheet()">Schließen</button>
+  </div>`);
+  $('#sheet').scrollTop = 0;
+}
+function copyCoach() { const done = () => toast('Kopiert'); if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(COACH_Q).then(done).catch(() => { const r = document.createRange(); r.selectNodeContents($('.coachq')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast('Text markiert, jetzt kopieren'); }); else toast('Kopieren hier nicht möglich'); }
 function exportData() {
   const blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `nox-sicherung-${localISO()}.json`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);

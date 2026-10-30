@@ -1,4 +1,4 @@
-const CACHE = 'nox-v6';
+const CACHE = 'nox-v7';
 const ASSETS = ['./','./index.html','./manifest.webmanifest','./fonts/fonts.css','./fonts/fonts-varianten.css',
   './fonts/SpaceGrotesk-latin.woff2','./fonts/SpaceGrotesk-latin-ext.woff2',
   './fonts/JetBrainsMono-latin.woff2','./fonts/JetBrainsMono-latin-ext.woff2',
