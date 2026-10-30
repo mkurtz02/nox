@@ -606,6 +606,21 @@ body[data-look="glow"] .rest{gap:8px;padding:10px 10px 10px 14px}
 .fl-t{font-family:var(--head);font-weight:var(--head-w);font-size:40px;line-height:1.05;font-variant-numeric:tabular-nums;min-width:120px}
 .fl-c{flex:1;width:100%;max-width:480px;margin:0 auto;border-radius:24px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);touch-action:none;display:block;min-height:0}
 .fl-foot{display:flex;justify-content:space-between;margin:12px auto 0;max-width:480px;width:100%;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu)}
+
+/* ===== Runde 20: Liquid-Glass-Kacheln, Session-Editor, Tron ===== */
+body[data-look="glow"] .tile.glow{background:rgba(255,255,255,.035);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border:1px solid rgba(255,255,255,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.42),inset 0 -1px 0 rgba(255,255,255,.06),inset 0 0 0 1px rgba(255,255,255,.03),0 22px 52px -18px color-mix(in srgb,var(--c2) var(--ga),transparent)}
+body[data-look="glow"][data-tone="leuchtend"] .tile.glow::before{opacity:calc(var(--gi,1) * .9);mix-blend-mode:normal}
+body[data-look="glow"] .tile.glow::after{background:radial-gradient(70% 42% at 16% -4%,rgba(255,255,255,.34) 0%,rgba(255,255,255,.08) 40%,transparent 62%),linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 28%,transparent 76%,rgba(255,255,255,.05) 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+body[data-look="glow"] .tile.off{background:rgba(255,255,255,.05);backdrop-filter:blur(30px) saturate(160%);-webkit-backdrop-filter:blur(30px) saturate(160%);border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 16px 40px -20px rgba(0,0,0,.6)}
+.esrow{display:grid;grid-template-columns:18px 1fr 1fr 34px;gap:8px;align-items:center}
+.esrow label{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:0 10px;height:44px}
+.esrow input{width:100%;min-width:0;height:100%;background:transparent;border:0;font-size:16px;font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--tx)}
+.esrow small{font-family:var(--mono);font-size:10px;color:var(--mu);letter-spacing:.08em;text-transform:uppercase}
+body[data-look="glow"] .esrow label{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12)}
+.field input[type="date"]{color-scheme:dark}
+#done .drow{display:flex;gap:10px;margin-top:10px;animation:up .4s 1.2s var(--ease) both}
+#done .drow .btn{margin-top:0;min-width:0;flex:1;padding:0 12px;font-size:14px}
 @media (min-width:640px){
   :root{--px:28px}
   #app{max-width:none}
@@ -1160,28 +1175,73 @@ function flappyStart(c) {
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   const W = c.clientWidth, H = c.clientHeight; c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
   const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const cs = getComputedStyle(document.body); const col = cs.getPropertyValue('--d1').trim() || '#fff', col2 = cs.getPropertyValue('--d2').trim() || '#888', head = cs.getPropertyValue('--head') || 'sans-serif';
-  const F = FL = { c, g, W, H, y: H / 2, vy: 0, pipes: [], score: 0, over: false, started: false, last: performance.now(), raf: 0, t: 0 };
-  const R = 13, GAP = Math.max(150, Math.min(190, H * 0.3)), PW = 54, SPEED = 150, BX = W * 0.3;
-  c.onpointerdown = e => { e.preventDefault(); if (!FL) return; if (FL.over) { flappyStart(c); FL.started = true; FL.vy = -320; return; } FL.started = true; FL.vy = -320; };
+  const cs = getComputedStyle(document.body); const head = cs.getPropertyValue('--head') || 'sans-serif', mono = cs.getPropertyValue('--mono') || 'monospace';
+  const CY = '#7DF9FF', OR = '#FF9F1C', DEEP = '#0a1a22';
+  const F = FL = { c, g, W, H, y: H / 2, vy: 0, pipes: [], score: 0, over: false, started: false, last: performance.now(), raf: 0, t: 0, trail: [], parts: [], grid: 0, dead: 0, flash: 0 };
+  const R = 11, PW = 46, BX = W * 0.3, FLOOR = H - 26;
+  const speed = () => 150 + Math.min(190, F.score * 7);
+  const gap = () => Math.max(116, 178 - F.score * 2.6);
+  const flap = () => { F.vy = -310; F.flash = 1; };
+  c.onpointerdown = e => { e.preventDefault(); if (!FL) return; if (FL.over) { if (performance.now() - FL.dead < 500) return; flappyStart(c); FL.started = true; flap(); return; } FL.started = true; flap(); };
   const rr = (x, y, w, h, r) => { r = Math.min(r, w / 2, Math.max(0, h / 2)); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+  const tick = () => { if (!S.settings.sound) return; try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); const o = actx.createOscillator(), gn = actx.createGain(); o.type = 'square'; o.frequency.value = 880 + Math.min(600, F.score * 20); gn.gain.value = 0.0001; o.connect(gn); gn.connect(actx.destination); const t = actx.currentTime; gn.gain.exponentialRampToValueAtTime(0.05, t + 0.01); gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.09); o.start(t); o.stop(t + 0.1); } catch (e) { } };
   const loop = now => {
-    if (FL !== F) return; const dt = Math.min(0.033, (now - F.last) / 1000); F.last = now; F.t += dt;
+    if (FL !== F) return; const dt = Math.min(0.033, (now - F.last) / 1000); F.last = now; F.t += dt; F.grid = (F.grid + speed() * dt) % 60;
     if (F.started && !F.over) {
-      F.vy += 900 * dt; F.y += F.vy * dt;
-      if (!F.pipes.length || F.pipes[F.pipes.length - 1].x < W - 200) F.pipes.push({ x: W + PW, gy: 70 + Math.random() * Math.max(40, H - 150 - GAP), passed: false });
-      F.pipes.forEach(p => { p.x -= SPEED * dt; if (!p.passed && p.x + PW < BX) { p.passed = true; F.score++; } });
+      F.vy += 980 * dt; F.y += F.vy * dt;
+      F.trail.push({ x: BX, y: F.y }); F.trail.forEach(p => p.x -= speed() * dt); F.trail = F.trail.filter(p => p.x > -10).slice(-70);
+      const G = gap();
+      if (!F.pipes.length || F.pipes[F.pipes.length - 1].x < W - Math.max(190, 240 - F.score * 3)) F.pipes.push({ x: W + PW, gy: 60 + Math.random() * Math.max(40, FLOOR - 120 - G), g: G, passed: false, move: F.score >= 8 && Math.random() < 0.5 ? (Math.random() < .5 ? 1 : -1) : 0, ph: Math.random() * 6 });
+      F.pipes.forEach(p => { p.x -= speed() * dt; if (p.move) p.gy += Math.sin(F.t * 2.2 + p.ph) * 36 * dt * p.move; if (!p.passed && p.x + PW < BX) { p.passed = true; F.score++; tick(); } });
       F.pipes = F.pipes.filter(p => p.x > -PW);
-      if (F.y + R > H - 6 || F.y - R < 0) F.over = true;
-      F.pipes.forEach(p => { if (BX + R > p.x && BX - R < p.x + PW && (F.y - R < p.gy || F.y + R > p.gy + GAP)) F.over = true; });
-      if (F.over) { S.meta.flappyBest = Math.max(S.meta.flappyBest || 0, F.score); save(); const b = $('#flappy .fl-b'); if (b) b.textContent = `Best ${S.meta.flappyBest}`; const st = $('#flappy .fl-s'); if (st) st.textContent = F.score >= (S.meta.flappyBest || 0) && F.score > 0 ? 'Neue Bestmarke. Tippen für die nächste Runde' : 'Tippen für die nächste Runde'; if (navigator.vibrate) navigator.vibrate(50); }
+      let hit = F.y + R > FLOOR || F.y - R < 0;
+      F.pipes.forEach(p => { if (BX + R > p.x && BX - R < p.x + PW && (F.y - R < p.gy || F.y + R > p.gy + p.g)) hit = true; });
+      if (hit) {
+        F.over = true; F.dead = performance.now();
+        for (let i = 0; i < 26; i++) { const a = Math.random() * Math.PI * 2, v = 80 + Math.random() * 260; F.parts.push({ x: BX, y: F.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, l: 0.9 + Math.random() * .5, c: Math.random() < .7 ? CY : OR }); }
+        S.meta.flappyBest = Math.max(S.meta.flappyBest || 0, F.score); save();
+        const b = $('#flappy .fl-b'); if (b) b.textContent = `Best ${S.meta.flappyBest}`;
+        const st = $('#flappy .fl-s'); if (st) st.textContent = F.score > 0 && F.score >= (S.meta.flappyBest || 0) ? 'Neue Bestmarke · Tippen' : 'Derezzed · Tippen';
+        if (navigator.vibrate) navigator.vibrate(60);
+      }
     } else if (!F.started) { F.y = H / 2 + Math.sin(F.t * 3) * 8; }
+    F.parts.forEach(p => { p.vy += 500 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.l -= dt; }); F.parts = F.parts.filter(p => p.l > 0);
+    F.flash = Math.max(0, F.flash - dt * 4);
+    // ----- zeichnen -----
     g.clearRect(0, 0, W, H);
-    g.fillStyle = 'rgba(255,255,255,.06)'; g.fillRect(0, H - 6, W, 6);
-    F.pipes.forEach(p => { g.fillStyle = 'rgba(255,255,255,.07)'; g.strokeStyle = col2; g.lineWidth = 1.5; [[0, p.gy], [p.gy + GAP, H - 6 - (p.gy + GAP)]].forEach(([y, h]) => { if (h <= 0) return; rr(p.x, y, PW, h, 12); g.fill(); g.stroke(); }); });
-    g.save(); g.shadowColor = col2; g.shadowBlur = 26; g.fillStyle = col; g.beginPath(); g.arc(BX, F.y, R, 0, Math.PI * 2); g.fill(); g.restore();
-    g.fillStyle = 'rgba(255,255,255,.92)'; g.font = `300 56px ${head}`; g.textAlign = 'center'; g.fillText(String(F.score), W / 2, 74);
-    if (!F.started) { g.fillStyle = 'rgba(255,255,255,.5)'; g.font = `12px ${cs.getPropertyValue('--mono') || 'monospace'}`; g.fillText('TIPPEN', W / 2, H / 2 + 60); }
+    const sky = g.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, '#000'); sky.addColorStop(1, DEEP); g.fillStyle = sky; g.fillRect(0, 0, W, H);
+    // Raster: Horizontlinien mit Perspektive
+    g.strokeStyle = 'rgba(125,249,255,.22)'; g.lineWidth = 1;
+    for (let i = 0; i < 9; i++) { const k = i / 8; const y = FLOOR + (H - FLOOR) * (k * k); g.globalAlpha = .25 + k * .5; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); }
+    for (let x = -F.grid; x < W + 60; x += 60) { g.globalAlpha = .35; g.beginPath(); g.moveTo(x, H); g.lineTo(W / 2 + (x - W / 2) * .55, FLOOR); g.stroke(); }
+    g.globalAlpha = 1;
+    g.save(); g.shadowColor = CY; g.shadowBlur = 14; g.strokeStyle = CY; g.lineWidth = 2; g.beginPath(); g.moveTo(0, FLOOR); g.lineTo(W, FLOOR); g.stroke(); g.restore();
+    // Sterne
+    for (let i = 0; i < 24; i++) { const sx = ((i * 97 + F.t * 6) % (W + 20)) - 10, sy = (i * 53) % (FLOOR - 40); g.fillStyle = `rgba(255,255,255,${.15 + (i % 3) * .12})`; g.fillRect(W - sx, sy, 1.5, 1.5); }
+    // Wände
+    F.pipes.forEach(p => {
+      g.save(); g.shadowColor = OR; g.shadowBlur = 18; g.lineWidth = 2; g.strokeStyle = OR; g.fillStyle = 'rgba(255,159,28,.1)';
+      [[0, p.gy], [p.gy + p.g, FLOOR - (p.gy + p.g)]].forEach(([y, h]) => { if (h <= 0) return; rr(p.x, y, PW, h, 6); g.fill(); g.stroke(); });
+      g.restore();
+      g.strokeStyle = 'rgba(255,159,28,.35)'; g.lineWidth = 1; for (let yy = 10; yy < p.gy - 4; yy += 14) { g.beginPath(); g.moveTo(p.x + 8, yy); g.lineTo(p.x + PW - 8, yy); g.stroke(); } for (let yy = p.gy + p.g + 10; yy < FLOOR - 4; yy += 14) { g.beginPath(); g.moveTo(p.x + 8, yy); g.lineTo(p.x + PW - 8, yy); g.stroke(); }
+    });
+    // Lichtspur
+    if (F.trail.length > 1) { g.save(); g.shadowColor = CY; g.shadowBlur = 12; g.lineCap = 'round'; for (let i = 1; i < F.trail.length; i++) { const a = i / F.trail.length; g.strokeStyle = `rgba(125,249,255,${(a * .9).toFixed(3)})`; g.lineWidth = 1 + a * 3; g.beginPath(); g.moveTo(F.trail[i - 1].x, F.trail[i - 1].y); g.lineTo(F.trail[i].x, F.trail[i].y); g.stroke(); } g.restore(); }
+    // Lightcycle
+    if (!F.over) {
+      const ang = Math.max(-.6, Math.min(.9, F.vy / 600));
+      g.save(); g.translate(BX, F.y); g.rotate(ang); g.shadowColor = CY; g.shadowBlur = 22 + F.flash * 18; g.fillStyle = CY; rr(-14, -6, 28, 12, 6); g.fill(); g.fillStyle = '#021a1f'; rr(-8, -3, 12, 6, 3); g.fill(); g.fillStyle = '#fff'; g.fillRect(10, -2, 4, 4); g.restore();
+    }
+    // Trümmer
+    F.parts.forEach(p => { g.save(); g.globalAlpha = Math.max(0, Math.min(1, p.l)); g.shadowColor = p.c; g.shadowBlur = 10; g.fillStyle = p.c; g.fillRect(p.x, p.y, 4, 4); g.restore(); });
+    // Scanlines
+    g.fillStyle = 'rgba(0,0,0,.18)'; for (let y = 0; y < H; y += 3) g.fillRect(0, y, W, 1);
+    // Score
+    g.save(); g.shadowColor = CY; g.shadowBlur = 16; g.fillStyle = 'rgba(255,255,255,.95)'; g.font = `300 58px ${head}`; g.textAlign = 'center'; g.fillText(String(F.score), W / 2, 74); g.restore();
+    g.fillStyle = 'rgba(125,249,255,.6)'; g.font = `11px ${mono}`; g.textAlign = 'center';
+    if (!F.started) g.fillText('TIPPEN · GRID BETRETEN', W / 2, H / 2 + 60);
+    else if (F.over) g.fillText(performance.now() - F.dead > 500 ? 'TIPPEN · NOCHMAL' : '', W / 2, H / 2 + 60);
+    else if (F.score >= 8 && F.score < 10) g.fillText('WÄNDE BEWEGEN SICH', W / 2, 100);
     F.raf = requestAnimationFrame(loop);
   };
   F.raf = requestAnimationFrame(loop);
@@ -1269,7 +1329,7 @@ function showDone(session, dur, prs, egg) {
     ${prs.length || fresh.length ? `<div class="dlist">${prs.map(p => `<div class="dpr"><span>${esc(p.name)}</span><b>${fmtW(p.w)} kg × ${p.r}</b></div>`).join('')}${fresh.map(a => `<div class="dach"><span class="star">★</span><div>${a.t}<small>Neuer Erfolg</small></div></div>`).join('')}</div>` : ''}
     <div class="dfoot">${weekLine}${egg ? ` ${egg}` : ''}<br><span style="color:var(--tx)">Jetzt dehnen.</span></div>
     <button class="btn primary" onclick="document.getElementById('done').remove();$('#app').removeAttribute('inert');$('#nav').removeAttribute('inert');render()">Weiter</button>
-    <button class="btn ghost" style="margin-top:8px;animation-delay:1.2s" onclick="resumeSession('${session.id}')">Doch noch weitertrainieren</button>`;
+    <div class="drow"><button class="btn ghost sm" onclick="document.getElementById('done').remove();$('#app').removeAttribute('inert');$('#nav').removeAttribute('inert');render();coachSheet('session',{sessionId:'${session.id}'})">Coach-Bewertung</button><button class="btn ghost sm" onclick="resumeSession('${session.id}')">Weitertrainieren</button></div>`;
   document.body.appendChild(el); $('#app').setAttribute('inert', ''); $('#nav').setAttribute('inert', '');
   chime();
   // Zahlen hochzählen
@@ -1380,8 +1440,52 @@ function sessionSheet(id) {
   const s = S.sessions.find(x => x.id === id); if (!s) return;
   sheet(`<div class="kicker">${fmtDateMed(s.date)} · ${fmtDurLong((s.endedAt - s.startedAt) / 1000)}</div><div class="sheet-h" style="margin-top:4px">${esc(s.dayName)}</div>
   <div class="card hair list" style="margin-bottom:14px">${s.entries.map(e => `<div><div style="font-weight:600">${esc(e.name)}</div><div class="num tiny" style="margin-top:3px">${e.sets.map(x => `${fmtW(x.w)}×${x.r}`).join(' · ')}</div></div>`).join('')}</div>
-  ${s.date === localISO() && !S.active ? `<button class="btn wide primary" style="margin-bottom:10px" onclick="resumeSession('${s.id}')">Fortsetzen</button>` : ''}
-  <button class="btn wide ghost" style="color:var(--red)" onclick="closeSheet();deleteSession('${s.id}')">Training entfernen</button>`);
+  <div class="stack">
+  ${s.date === localISO() && !S.active ? `<button class="btn wide primary" onclick="resumeSession('${s.id}')">Fortsetzen</button>` : ''}
+  <button class="btn wide ghost" onclick="editSessionSheet('${s.id}')">Bearbeiten</button>
+  <button class="btn wide ghost" onclick="coachSheet('session',{sessionId:'${s.id}'})">Vom Coach bewerten lassen</button>
+  <button class="btn wide ghost" style="color:var(--red)" onclick="closeSheet();deleteSession('${s.id}')">Training entfernen</button></div>`);
+}
+/* Fertige Trainings bearbeiten */
+let ES = null;
+function editSessionSheet(id) {
+  const s = S.sessions.find(x => x.id === id); if (!s) return;
+  ES = JSON.parse(JSON.stringify(s)); renderEditSession();
+}
+function renderEditSession() {
+  const s = ES; const sc = $('#sheet') ? $('#sheet').scrollTop : 0;
+  sheet(`<div class="kicker">Bearbeiten</div><div class="sheet-h" style="margin-top:4px">${esc(s.dayName)}</div>
+  <label class="field" style="margin-bottom:14px"><span class="lbl">Datum</span><input type="date" value="${s.date}" max="${localISO()}" onchange="ES.date=this.value||ES.date"></label>
+  ${s.entries.map((e, ei) => `<div class="card hair list" style="margin-bottom:10px"><div class="row"><div style="font-weight:600">${esc(e.name)}</div><button class="link mu" onclick="esRemoveEx(${ei})">Entfernen</button></div>
+    ${e.sets.map((x, si) => `<div class="esrow"><span class="tiny num">${si + 1}</span><label><input class="num" inputmode="decimal" value="${fmtW(x.w)}" onchange="esSet(${ei},${si},'w',this.value)" aria-label="Gewicht"><small>kg</small></label><label><input class="num" inputmode="numeric" value="${x.r}" onchange="esSet(${ei},${si},'r',this.value)" aria-label="Wiederholungen"><small>Wdh</small></label><button class="btn xs ghost" onclick="esRemoveSet(${ei},${si})" aria-label="Satz entfernen">−</button></div>`).join('')}
+    <button class="link" style="text-align:left" onclick="esAddSet(${ei})">+ Satz</button></div>`).join('')}
+  <div class="stack" style="margin-top:6px"><button class="btn wide primary" onclick="esSave()">Speichern</button><button class="btn wide ghost" onclick="closeSheet()">Abbrechen</button></div>`);
+  $('#sheet').scrollTop = sc;
+}
+function esSet(ei, si, k, v) { const x = ES.entries[ei].sets[si]; const n = parseNum(v); if (n == null) return; if (k === 'w') x.w = Math.max(0, Math.round(n * 100) / 100); else x.r = Math.max(0, Math.round(n)); }
+function esRemoveSet(ei, si) { ES.entries[ei].sets.splice(si, 1); if (!ES.entries[ei].sets.length) ES.entries.splice(ei, 1); renderEditSession(); }
+function esRemoveEx(ei) { ES.entries.splice(ei, 1); renderEditSession(); }
+function esAddSet(ei) { const e = ES.entries[ei]; const l = e.sets[e.sets.length - 1]; e.sets.push({ w: l ? l.w : 0, r: l ? l.r : 8, done: true }); renderEditSession(); }
+function computePRs(sess) {
+  const before = S.sessions.filter(x => x.id !== sess.id && (x.date < sess.date || (x.date === sess.date && (x.endedAt || 0) < (sess.endedAt || 0))));
+  const prs = [];
+  sess.entries.forEach(e => {
+    const hist = before.map(x => x.entries.find(y => y.exId === e.exId || y.name === e.name)).filter(y => y && y.sets.length);
+    if (!hist.length) return;
+    const bestW = Math.max(...hist.map(h => Math.max(...h.sets.map(x => x.w)))), best1 = Math.max(...hist.map(h => Math.max(...h.sets.map(x => e1rm(x.w, x.r)))));
+    const top = e.sets.reduce((x, y) => (y.w > x.w || (y.w === x.w && y.r > x.r)) ? y : x);
+    const my1 = Math.max(...e.sets.map(x => e1rm(x.w, x.r)));
+    if (top.w > 0 && (top.w > bestW || my1 > best1 + 0.01)) prs.push({ name: e.name, w: top.w, r: top.r });
+  });
+  return prs;
+}
+function esSave() {
+  const i = S.sessions.findIndex(x => x.id === ES.id); if (i < 0) { closeSheet(); return; }
+  const s = ES; s.entries = s.entries.filter(e => e.sets.length);
+  if (!s.entries.length) { closeSheet(); deleteSession(s.id); return; }
+  s.volume = s.entries.reduce((n, e) => n + e.sets.reduce((m, x) => m + x.w * x.r, 0), 0);
+  s.prs = computePRs(s); s.edited = Date.now();
+  S.sessions[i] = s; ES = null; save(); closeSheet(); toast('Gespeichert'); render();
 }
 function deleteSession(id) { confirmSheet('Training entfernen?', 'Das lässt sich nicht rückgängig machen.', 'Entfernen', () => { S.sessions = S.sessions.filter(s => s.id !== id); save(); render(); }, true); }
 function lineChart(pts) {
@@ -1739,7 +1843,7 @@ function renderMore() {
     <div class="tiny">Nur zum Ansehen des Designs. Beispieldaten sind markiert und lassen sich jederzeit wieder entfernen, deine echten Trainings bleiben.</div>
   </div></div>
   ${!standalone ? `<div class="sec"><div class="sec-h"><span class="kicker">Aufs iPhone</span></div><div class="card"><p style="font-size:15px">In Safari unten <b>Teilen</b> antippen, dann <b>Zum Home-Bildschirm</b>. Danach startet NOX wie eine App, ohne Browserleiste und auch offline.</p></div></div>` : ''}
-  <div class="sec"><p class="tiny mono" style="text-align:center">NOX · v0.4 · ${S.meta.created}</p></div>`;
+  <div class="sec"><p class="tiny mono" style="text-align:center">NOX · v0.5 · ${S.meta.created}</p></div>`;
 }
 function setS(k, v) { S.settings[k] = v; save(); if (k === 'look' || k === 'font' || k === 'fontGlow' || k === 'tone') { document.body.classList.add('notrans'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('notrans'))); } applyFont(); render(); }
 function applyFont() {
@@ -1762,6 +1866,14 @@ function coachPrompt(kind, ctx = {}) {
     const di = exDayIndex(ctx.exId, name); const dayTxt = di >= 0 ? ` Sie steht in meinem Tag „${S.plan.days[di].name}“.` : ' Sie steht noch nicht im Plan.';
     return `${who}\n\nBitte analysiere die Übung „${name}“ für mich.${dayTxt}${lastTxt}\n1. Welche Muskeln arbeiten, Haupt- und Nebenmuskeln?\n2. Ausführung Schritt für Schritt, kurz.\n3. Drei Tipps und die zwei häufigsten Fehler.\n4. Passt sie in diesen Trainingstag, und ist ${ctx.sets || 3} × ${ctx.repsMin || 8}–${ctx.repsMax || 12} sinnvoll?\n5. Eine gleichwertige Alternative, falls das Gerät belegt ist.\nAntworte knapp, auf Deutsch, ohne Floskeln.\n\nMein Plan zur Einordnung:\n${planTxt}`;
   }
+  if (kind === 'session') {
+    const sess = S.sessions.find(x => x.id === ctx.sessionId); if (!sess) return `${who}\n\nBewerte mein letztes Training.`;
+    const prev = [...S.sessions].filter(x => x.id !== sess.id && x.dayId === sess.dayId && x.date <= sess.date).sort((a, b) => b.date.localeCompare(a.date))[0];
+    const line = e => `${e.name}: ${e.sets.map(x => `${fmtW(x.w)}×${x.r}`).join(', ')}`;
+    const prevLine = e => { const pe = prev && prev.entries.find(y => y.exId === e.exId || y.name === e.name); return pe ? ` (davor ${pe.sets.map(x => `${fmtW(x.w)}×${x.r}`).join(', ')})` : ''; };
+    const dur = Math.round((sess.endedAt - sess.startedAt) / 60000);
+    return `${who}\n\nBewerte mein Training „${sess.dayName}“ vom ${fmtDateMed(sess.date)} (${dur} min, ${(sess.volume / 1000).toFixed(1).replace('.', ',')} t Volumen), Gewicht × Wiederholungen je Satz, in Klammern das Training davor:\n${sess.entries.map(e => line(e) + prevLine(e)).join('\n')}\n\n1. Wie war die Einheit insgesamt, Volumen und Intensität?\n2. Wo soll ich beim nächsten Mal Gewicht erhöhen, wo halten, wo Wiederholungen steigern? Bitte konkrete Zahlen je Übung.\n3. Welche Übung oder Muskelgruppe kam zu kurz?\n4. Ein Satz zur Technik, worauf ich bei den schwersten Sätzen achten soll.\nAntworte knapp, auf Deutsch, ohne Floskeln.\n\nMein Plan zur Einordnung:\n${planTxt}`;
+  }
   const since = localISO(addDays(new Date(), -28)); const recent = S.sessions.filter(x => x.date >= since && !x.demo);
   const perDay = S.plan.days.map(d => `${d.name} ${recent.filter(x => x.dayId === d.id).length}×`).join(', ');
   return `${who}\n\nBewerte meinen Trainingsplan ehrlich und konkret:\n${planTxt}\n\nTrainings der letzten 4 Wochen: ${recent.length} (${perDay}).\n\n1. Ist das Volumen pro Muskelgruppe ausgewogen, Sätze pro Woche?\n2. Was fehlt, was ist doppelt?\n3. Stimmt die Reihenfolge innerhalb der Tage?\n4. Wie steigere ich Gewicht und Wiederholungen am besten?\n5. Welche drei Änderungen bringen am meisten für Muskelaufbau?\nAntworte knapp, auf Deutsch, mit konkreten Vorschlägen.`;
@@ -1769,7 +1881,7 @@ function coachPrompt(kind, ctx = {}) {
 let COACH_Q = '';
 function coachSheet(kind, ctx = {}) {
   COACH_Q = coachPrompt(kind, ctx); const q = encodeURIComponent(COACH_Q);
-  sheet(`<div class="kicker">Coach</div><div class="exh" style="margin-top:4px">${kind === 'plan' ? 'Plan bewerten' : esc(ctx.name || 'Übung')}</div>
+  sheet(`<div class="kicker">Coach</div><div class="exh" style="margin-top:4px">${kind === 'plan' ? 'Plan bewerten' : kind === 'session' ? 'Training bewerten' : esc(ctx.name || 'Übung')}</div>
   <p class="sub" style="margin-top:10px">Öffnet deinen KI-Assistenten mit dieser Frage. Mehr als das hier geht nicht raus.</p>
   <pre class="coachq">${esc(COACH_Q)}</pre>
   <div class="stack" style="margin-top:14px">
