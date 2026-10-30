@@ -543,6 +543,69 @@ body[data-look="anthrazit"] .tips div::before{background:var(--gold)}
 .pr b{font-family:var(--mono);color:var(--gold)}
 /* ===== Responsive (zuletzt, damit es die Basisregeln überstimmt) ===== */
 /* Tablet */
+
+/* ===== Runde 19: Apple-Buttons, Leuchten, Luft, Pausenspiel ===== */
+body[data-look="glow"] .btn{height:50px;border-radius:999px;font-family:var(--sans);font-size:17px;font-weight:600;letter-spacing:-.01em;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none;
+  transition:transform .34s cubic-bezier(.34,1.56,.64,1),background-color .15s ease,opacity .15s ease,box-shadow .2s ease}
+body[data-look="glow"] .btn:active{transform:scale(.95);transition-duration:.08s}
+body[data-look="glow"] .btn.primary{background:linear-gradient(180deg,#fff 0%,#e9e9ee 100%);color:#000;border-color:transparent;box-shadow:inset 0 1px 0 #fff,0 12px 30px -12px rgba(255,255,255,.4)}
+body[data-look="glow"] .btn.primary:active{background:linear-gradient(180deg,#f0f0f3,#dcdce2)}
+body[data-look="glow"] .btn.ghost{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+body[data-look="glow"] .btn.ghost:active{background:rgba(255,255,255,.14)}
+body[data-look="glow"] .btn.danger{background:rgba(255,69,58,.12);color:#FF6B61;border-color:transparent}
+body[data-look="glow"] .btn.xs{height:34px;border-radius:999px;font-size:13px;padding:0 13px}
+body[data-look="glow"] .btn.sm{height:40px;font-size:15px}
+body[data-look="glow"] .btn[disabled]{opacity:.35}
+.btn:focus-visible,.tile:focus-visible,.opt:focus-visible{outline:2px solid rgba(255,255,255,.85);outline-offset:3px}
+body[data-look="glow"] .opt{border-radius:18px;transition:transform .3s cubic-bezier(.34,1.56,.64,1),background-color .15s ease}
+body[data-look="glow"] .opt:active{transform:scale(.97);transition-duration:.08s}
+body[data-look="glow"] .chk{border-radius:14px;transition:transform .3s cubic-bezier(.34,1.56,.64,1),background-color .15s ease,border-color .15s ease,color .15s ease}
+body[data-look="glow"] .chk.on{animation:chkpop .38s cubic-bezier(.34,1.56,.64,1)}
+@keyframes chkpop{0%{transform:scale(.88)}60%{transform:scale(1.07)}100%{transform:none}}
+body[data-look="glow"] .tile{transition:transform .34s cubic-bezier(.34,1.56,.64,1),filter .2s ease}
+body[data-look="glow"] .tile:active{transform:scale(.965);transition-duration:.09s}
+/* Leuchten: Lichtquelle oben links, weicher Außenschein in Kachelfarbe, langsames Atmen */
+body[data-look="glow"]::before{background:radial-gradient(72% 46% at 50% -8%,color-mix(in srgb,var(--d2) 58%,transparent),transparent 70%),radial-gradient(55% 40% at 88% 108%,color-mix(in srgb,var(--d2) 30%,transparent),transparent 70%),radial-gradient(45% 35% at 2% 70%,color-mix(in srgb,var(--d1) 14%,transparent),transparent 70%)}
+body[data-tone="leuchtend"] .tile.glow::before{background:
+  radial-gradient(125% 95% at 22% -10%,color-mix(in srgb,var(--c1) 86%,#fff) 0%,var(--c1) 16%,color-mix(in srgb,var(--c1) 45%,var(--c2)) 34%,var(--c2) 52%,rgba(0,0,0,0) 86%),
+  radial-gradient(85% 65% at 102% 108%,color-mix(in srgb,var(--c2) 72%,#000) 0%,rgba(0,0,0,0) 72%),
+  linear-gradient(165deg,var(--c2) 0%,color-mix(in srgb,var(--c2) 42%,#0a0a0a) 60%,#0a0a0a 100%)}
+.tile.glow{--ga:calc(var(--gi,1) * 58%);box-shadow:0 22px 52px -18px color-mix(in srgb,var(--c2) var(--ga),transparent)}
+.tile.glow.sunrise{--ga:58%;--c2:#F39A3D}
+.tile.glow:not(.lit)::before{animation:breathe 9s ease-in-out infinite}
+.tiles .tile:nth-child(2)::before{animation-delay:-2.5s}.tiles .tile:nth-child(3)::before{animation-delay:-5s}.tiles .tile:nth-child(4)::before{animation-delay:-7s}.tiles .tile:nth-child(5)::before{animation-delay:-1.5s}.tiles .tile:nth-child(6)::before{animation-delay:-4s}.tiles .tile:nth-child(7)::before{animation-delay:-6.5s}.tiles .tile:nth-child(8)::before{animation-delay:-3s}
+@keyframes breathe{0%,100%{filter:brightness(1) saturate(1)}50%{filter:brightness(1.08) saturate(1.18)}}
+/* Luft */
+#app{padding-top:calc(var(--sat) + 24px)}
+.focus{margin-top:20px;font-size:17px;max-width:32ch}
+.tiles{gap:14px;margin-top:30px}
+.tile{padding:20px 16px 24px}
+.tile .tl{top:18px;left:20px;right:20px}
+.sec{margin-top:30px}
+/* Heute-Kachel: links Start, rechts Infos */
+.tile.wide.today{aspect-ratio:auto;min-height:216px;align-items:stretch;padding:20px 20px 22px}
+.tile.today .tw{display:grid;grid-template-columns:1.05fr 1fr;gap:16px;height:100%;width:100%}
+.tile.today .twl{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;text-align:left;gap:14px;min-width:0}
+.tile.today .twl .tl{position:static;margin-bottom:auto;white-space:normal}
+.tile.today .nx{text-align:left}
+.tile.today .nx span{color:rgba(255,255,255,.72)}
+.tile.today .twr{display:flex;flex-direction:column;justify-content:flex-end;gap:12px;text-align:left;border-left:1px solid rgba(255,255,255,.16);padding-left:16px;min-width:0}
+.tile.today .ir{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.tile.today .iv{font-size:15px;line-height:1.3;color:#fff;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile.today .lb{text-align:left}
+/* Pausenbox: drei Buttons passen nur ohne Label */
+body[data-look="glow"] .rest{gap:8px;padding:10px 10px 10px 14px}
+.rest:not(.idle) .l{display:none}
+.rest .t{min-width:58px}
+/* Pausenspiel */
+#flappy{position:fixed;inset:0;z-index:var(--z-sheet);background:#000;display:flex;flex-direction:column;padding:calc(var(--sat) + 14px) var(--px) calc(var(--sab) + 18px);animation:fade .25s var(--ease)}
+#flappy::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(70% 45% at 50% 110%,color-mix(in srgb,var(--d2) 55%,transparent),transparent 70%)}
+#flappy>*{position:relative}
+.fl-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;max-width:480px;width:100%;margin-left:auto;margin-right:auto}
+.fl-k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.fl-t{font-family:var(--head);font-weight:var(--head-w);font-size:40px;line-height:1.05;font-variant-numeric:tabular-nums;min-width:120px}
+.fl-c{flex:1;width:100%;max-width:480px;margin:0 auto;border-radius:24px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);touch-action:none;display:block;min-height:0}
+.fl-foot{display:flex;justify-content:space-between;margin:12px auto 0;max-width:480px;width:100%;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu)}
 @media (min-width:640px){
   :root{--px:28px}
   #app{max-width:none}
@@ -873,7 +936,7 @@ function renderHomeGlow() {
   const todayTile = active
     ? tile('wide glow', dayColor(active.dayIndex >= 0 ? active.dayIndex : ni), `Läuft · ${active.entries.reduce((a, e) => a + e.sets.filter(s => s.done).length, 0)} Sätze erledigt`, '', `${esc(active.dayName)} · Fortsetzen`, "go('train')")
     : next
-      ? tile('wide glow', dayColor(ni), `Heute · ${next.exercises.length} Übungen${S.plan.isExample ? ' · Beispiel' : ''}`, nextStep(next), `${esc(next.name)} · Starten`, `startTraining(${ni})`, 1, ws.some(sess => sess.dayId === next.id))
+      ? todayTileHtml(next, ni, ws)
       : tile('wide off', null, 'Kein Plan', '', 'Plan anlegen', "go('plan')");
   S.achievements = S.achievements || {};
   const achN = ACH.filter(a => S.achievements[a.id]).length;
@@ -895,6 +958,24 @@ function renderHomeGlow() {
   </div>
   ${renderHints(2)}
   ${S.sessions.length === 0 ? `<div class="note" style="margin-top:26px">Noch kein Training gespeichert. Der Plan ist ein Beispiel, unter <b>Plan</b> trägst du deinen eigenen ein.</div>` : ''}`;
+}
+function todayTileHtml(next, ni, ws) {
+  const c = dayColor(ni);
+  const hist = S.sessions.filter(s => s.dayId === next.id).sort((a, b) => a.date.localeCompare(b.date));
+  const last = hist[hist.length - 1];
+  const durs = hist.slice(-4).map(s => (s.endedAt - s.startedAt) / 60000).filter(d => d > 5 && d < 180);
+  const avg = durs.length ? Math.round(durs.reduce((a, b) => a + b, 0) / durs.length) : null;
+  const sets = next.exercises.reduce((a, e) => a + (e.sets || 3), 0);
+  const up = next.exercises.filter(e => suggestion(e).reason === 'up');
+  const rows = [
+    ['Übungen', `${next.exercises.length} · ${sets} Sätze`],
+    ['Zuletzt', last ? `${fmtDateMed(last.date)} · ${(last.volume / 1000).toFixed(1).replace('.', ',')} t` : 'Erstes Mal'],
+    up.length ? ['Steigern', up.slice(0, 2).map(e => e.name.split(' ')[0]).join(', ')] : ['Dauer', avg ? `etwa ${avg} min` : `etwa ${Math.round(sets * 2.6)} min`]
+  ];
+  const done = ws.some(s => s.dayId === next.id);
+  return `<button class="tile wide glow today" style="--c1:${c[0]};--c2:${c[1]};--gi:1" onclick="startTraining(${ni})">${done ? `<span class="done">${ICON.chk}</span>` : ''}
+    <div class="tw"><div class="twl"><span class="tl">Heute${S.plan.isExample ? ' · Beispiel' : ''}</span>${nextStep(next)}<span class="lb">${esc(next.name)} · Starten</span></div>
+    <div class="twr">${rows.map(([k, v]) => `<div><div class="ir">${k}</div><div class="iv">${esc(v)}</div></div>`).join('')}</div></div></button>`;
 }
 function ring(n, goal) {
   const r = 30, C = 2 * Math.PI * r, k = Math.min(1, goal ? n / goal : 0);
@@ -1049,8 +1130,10 @@ function tickTrain() {
   const rb = $('#restbox'); if (!rb) return;
   if (a.restEnd && Date.now() < a.restEnd) {
     const left = (a.restEnd - Date.now()) / 1000, pct = 100 * (1 - left / a.restTotal);
-    rb.innerHTML = `<div class="rest"><div class="bar" style="transform:scaleX(${(pct / 100).toFixed(3)})"></div><div class="t">${fmtDur(left)}</div><div class="l">Pause</div><div class="sp"></div><button class="btn xs" onclick="restAdd(30)">+30</button><button class="btn xs ghost" onclick="restSkip()">Weiter</button></div>`;
+    rb.innerHTML = `<div class="rest"><div class="bar" style="transform:scaleX(${(pct / 100).toFixed(3)})"></div><div class="t">${fmtDur(left)}</div><div class="l">Pause</div><div class="sp"></div><button class="btn xs ghost" onclick="flappyOpen()" aria-label="Pausenspiel">Spiel</button><button class="btn xs" onclick="restAdd(30)">+30</button><button class="btn xs ghost" onclick="restSkip()">Weiter</button></div>`;
+    const ft = $('#flappy .fl-t'); if (ft) ft.textContent = fmtDur(left);
   } else {
+    const ft = $('#flappy .fl-t'); if (ft && ft.textContent !== 'Vorbei') { ft.textContent = 'Vorbei'; const bb = $('#flappy .fl-top .btn'); if (bb) { bb.textContent = 'Weiter trainieren'; bb.classList.add('primary'); bb.classList.remove('ghost'); } }
     if (a.restEnd && !a.restFired) { a.restFired = true; save(); toast('Pause vorbei'); beep(); if (navigator.vibrate) navigator.vibrate(120); }
     rb.innerHTML = `<div class="rest idle"><div class="t">–:––</div><div class="l">Pause</div><div class="sp"></div><span class="tiny">startet nach dem Haken</span></div>`;
   }
@@ -1060,6 +1143,49 @@ function restSkip() { S.active.restEnd = null; S.active.restFired = true; save()
 let actx = null;
 function beepReady() { if (!S.settings.sound) return; try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) { } }
 function beep() { if (!S.settings.sound || !actx) return; try { const o = actx.createOscillator(), g = actx.createGain(); o.type = 'sine'; o.frequency.value = 660; g.gain.value = 0.0001; o.connect(g); g.connect(actx.destination); const t = actx.currentTime; g.gain.exponentialRampToValueAtTime(0.18, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35); o.start(t); o.stop(t + 0.4); } catch (e) { } }
+/* ========== Pausenspiel ========== */
+let FL = null;
+function flappyOpen() {
+  if (document.getElementById('flappy')) return;
+  const el = document.createElement('div'); el.id = 'flappy';
+  el.innerHTML = `<div class="fl-top"><div><div class="fl-k">Pause</div><div class="fl-t">–:––</div></div><button class="btn sm ghost" onclick="flappyClose()">Zurück</button></div>
+    <canvas class="fl-c" aria-label="Pausenspiel: tippen zum Fliegen"></canvas>
+    <div class="fl-foot"><span class="fl-s">Tippen zum Fliegen</span><span class="fl-b">Best ${S.meta.flappyBest || 0}</span></div>`;
+  document.body.appendChild(el); $('#app').setAttribute('inert', ''); $('#nav').setAttribute('inert', '');
+  flappyStart(el.querySelector('canvas')); tickTrain();
+}
+function flappyClose() { if (FL) { cancelAnimationFrame(FL.raf); FL = null; } const el = document.getElementById('flappy'); if (el) el.remove(); $('#app').removeAttribute('inert'); $('#nav').removeAttribute('inert'); }
+function flappyStart(c) {
+  if (FL) cancelAnimationFrame(FL.raf);
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = c.clientWidth, H = c.clientHeight; c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
+  const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cs = getComputedStyle(document.body); const col = cs.getPropertyValue('--d1').trim() || '#fff', col2 = cs.getPropertyValue('--d2').trim() || '#888', head = cs.getPropertyValue('--head') || 'sans-serif';
+  const F = FL = { c, g, W, H, y: H / 2, vy: 0, pipes: [], score: 0, over: false, started: false, last: performance.now(), raf: 0, t: 0 };
+  const R = 13, GAP = Math.max(150, Math.min(190, H * 0.3)), PW = 54, SPEED = 150, BX = W * 0.3;
+  c.onpointerdown = e => { e.preventDefault(); if (!FL) return; if (FL.over) { flappyStart(c); FL.started = true; FL.vy = -320; return; } FL.started = true; FL.vy = -320; };
+  const rr = (x, y, w, h, r) => { r = Math.min(r, w / 2, Math.max(0, h / 2)); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+  const loop = now => {
+    if (FL !== F) return; const dt = Math.min(0.033, (now - F.last) / 1000); F.last = now; F.t += dt;
+    if (F.started && !F.over) {
+      F.vy += 900 * dt; F.y += F.vy * dt;
+      if (!F.pipes.length || F.pipes[F.pipes.length - 1].x < W - 200) F.pipes.push({ x: W + PW, gy: 70 + Math.random() * Math.max(40, H - 150 - GAP), passed: false });
+      F.pipes.forEach(p => { p.x -= SPEED * dt; if (!p.passed && p.x + PW < BX) { p.passed = true; F.score++; } });
+      F.pipes = F.pipes.filter(p => p.x > -PW);
+      if (F.y + R > H - 6 || F.y - R < 0) F.over = true;
+      F.pipes.forEach(p => { if (BX + R > p.x && BX - R < p.x + PW && (F.y - R < p.gy || F.y + R > p.gy + GAP)) F.over = true; });
+      if (F.over) { S.meta.flappyBest = Math.max(S.meta.flappyBest || 0, F.score); save(); const b = $('#flappy .fl-b'); if (b) b.textContent = `Best ${S.meta.flappyBest}`; const st = $('#flappy .fl-s'); if (st) st.textContent = F.score >= (S.meta.flappyBest || 0) && F.score > 0 ? 'Neue Bestmarke. Tippen für die nächste Runde' : 'Tippen für die nächste Runde'; if (navigator.vibrate) navigator.vibrate(50); }
+    } else if (!F.started) { F.y = H / 2 + Math.sin(F.t * 3) * 8; }
+    g.clearRect(0, 0, W, H);
+    g.fillStyle = 'rgba(255,255,255,.06)'; g.fillRect(0, H - 6, W, 6);
+    F.pipes.forEach(p => { g.fillStyle = 'rgba(255,255,255,.07)'; g.strokeStyle = col2; g.lineWidth = 1.5; [[0, p.gy], [p.gy + GAP, H - 6 - (p.gy + GAP)]].forEach(([y, h]) => { if (h <= 0) return; rr(p.x, y, PW, h, 12); g.fill(); g.stroke(); }); });
+    g.save(); g.shadowColor = col2; g.shadowBlur = 26; g.fillStyle = col; g.beginPath(); g.arc(BX, F.y, R, 0, Math.PI * 2); g.fill(); g.restore();
+    g.fillStyle = 'rgba(255,255,255,.92)'; g.font = `300 56px ${head}`; g.textAlign = 'center'; g.fillText(String(F.score), W / 2, 74);
+    if (!F.started) { g.fillStyle = 'rgba(255,255,255,.5)'; g.font = `12px ${cs.getPropertyValue('--mono') || 'monospace'}`; g.fillText('TIPPEN', W / 2, H / 2 + 60); }
+    F.raf = requestAnimationFrame(loop);
+  };
+  F.raf = requestAnimationFrame(loop);
+}
 function cancelTraining() { confirmSheet('Training verwerfen?', 'Alle Sätze von heute gehen verloren.', 'Verwerfen', () => { S.active = null; save(); applyFont(); go('home'); }, true); }
 function finishTraining() {
   const a = S.active; if (!a) return;
@@ -1086,7 +1212,7 @@ function resumeSession(id) {
   closeSheet(); go('train'); toast('Training fortgesetzt');
 }
 function doFinishTraining() {
-  const a = S.active; if (!a) return;
+  const a = S.active; if (!a) return; flappyClose();
   const entries = a.entries.map(e => ({ ...e, sets: e.sets.filter(s => s.done) })).filter(e => e.sets.length);
   const prs = [];
   entries.forEach(e => {
@@ -1613,7 +1739,7 @@ function renderMore() {
     <div class="tiny">Nur zum Ansehen des Designs. Beispieldaten sind markiert und lassen sich jederzeit wieder entfernen, deine echten Trainings bleiben.</div>
   </div></div>
   ${!standalone ? `<div class="sec"><div class="sec-h"><span class="kicker">Aufs iPhone</span></div><div class="card"><p style="font-size:15px">In Safari unten <b>Teilen</b> antippen, dann <b>Zum Home-Bildschirm</b>. Danach startet NOX wie eine App, ohne Browserleiste und auch offline.</p></div></div>` : ''}
-  <div class="sec"><p class="tiny mono" style="text-align:center">NOX · v0.3 · ${S.meta.created}</p></div>`;
+  <div class="sec"><p class="tiny mono" style="text-align:center">NOX · v0.4 · ${S.meta.created}</p></div>`;
 }
 function setS(k, v) { S.settings[k] = v; save(); if (k === 'look' || k === 'font' || k === 'fontGlow' || k === 'tone') { document.body.classList.add('notrans'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('notrans'))); } applyFont(); render(); }
 function applyFont() {
